@@ -2,16 +2,10 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'bhakti20/weather-tracker'
+        DOCKER_IMAGE = 'bhakti20/weather-tracker'  // Your DockerHub repo
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
@@ -23,8 +17,8 @@ pipeline {
         stage('Push to DockerHub') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-creds') {
-                        docker.image("${DOCKER_IMAGE}").push('latest')
+                    withDockerRegistry([credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/']) {
+                        docker.image("${DOCKER_IMAGE}").push("latest")
                     }
                 }
             }
@@ -33,10 +27,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Build and push successful!'
+            echo '✅ Docker image built and pushed successfully to DockerHub!'
         }
         failure {
-            echo '❌ Build failed.'
+            echo '❌ Pipeline failed. Check the logs for more info.'
         }
     }
 }
